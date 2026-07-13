@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YOENGKY KURNIA — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    :root {
+      --bg: #020510;
+      --bg2: #060d1f;
+      --cyan: #00f5d4;
+      --purple: #7b2fff;
+      --blue: #1a6bff;
+      --text: #c8d8ff;
+      --muted: #3a4a6a;
+      --glass: rgba(0, 245, 212, 0.03);
+      --glass-border: rgba(0, 245, 212, 0.14);
+      --font-display: 'Orbitron', monospace;
+      --font-body: 'Space Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-padding-top: 90px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* CANVAS */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* CUSTOM CURSOR */
+    .cursor-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .cursor-ring {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(0, 245, 212, 0.45);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, border-color 0.2s;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 5rem;
+      background: rgba(2, 5, 16, 0.65);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--glass-border);
+      transition: padding 0.3s;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--cyan);
+      letter-spacing: 0.18em;
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(0, 245, 212, 0.4);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.8rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--cyan);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    /* SECTIONS */
+    section {
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    /* HERO */
+    #hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .hero-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 1.6rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+
+    .hero-tag::before {
+      content: '// ';
+      opacity: 0.5;
+    }
+
+    .hero-tag::after {
+      content: ' //';
+      opacity: 0.5;
+    }
+
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 11vw, 7.5rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-shadow: 0 0 80px rgba(0, 245, 212, 0.25);
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-name::before,
+    .hero-name::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .hero-name::before {
+      color: var(--cyan);
+      animation: glitch1 4s infinite;
+      clip-path: polygon(0 0, 100% 0, 100% 38%, 0 38%);
+    }
+
+    .hero-name::after {
+      color: var(--purple);
+      animation: glitch2 4s infinite;
+      clip-path: polygon(0 62%, 100% 62%, 100% 100%, 0 100%);
+    }
+
+    @keyframes glitch1 {
+
+      0%,
+      90%,
+      100% {
+        transform: translate(0);
+        opacity: 0;
+      }
+
+      91% {
+        transform: translate(-4px, 1px);
+        opacity: 0.75;
+      }
+
+      93% {
+        transform: translate(4px, -2px);
+        opacity: 0.75;
+      }
+
+      95% {
+        transform: translate(-2px, 0);
+        opacity: 0.5;
+      }
+
+      97% {
+        transform: translate(0);
+        opacity: 0;
+      }
+    }
+
+    @keyframes glitch2 {
+
+      0%,
+      92%,
+      100% {
+        transform: translate(0);
+        opacity: 0;
+      }
+
+      93% {
+        transform: translate(4px, 2px);
+        opacity: 0.65;
+      }
+
+      95% {
+        transform: translate(-3px, -1px);
+        opacity: 0.65;
+      }
+
+      97% {
+        transform: translate(0);
+        opacity: 0;
+      }
+    }
+
+    .hero-role {
+      font-size: clamp(0.78rem, 1.8vw, 1rem);
+      color: var(--text);
+      margin-top: 1.4rem;
+      letter-spacing: 0.18em;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+      min-height: 1.5em;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--cyan);
+      margin-left: 3px;
+      vertical-align: middle;
+      animation: blink 0.75s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1.2rem;
+      margin-top: 3.2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 1.1s forwards;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.85rem 2.2rem;
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.3s;
+      cursor: none;
+    }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--bg);
+      border: 1px solid var(--cyan);
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--cyan);
+      box-shadow: 0 0 35px rgba(0, 245, 212, 0.4), inset 0 0 20px rgba(0, 245, 212, 0.05);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--glass-border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 25px rgba(0, 245, 212, 0.2);
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 1.5s forwards;
+      color: var(--muted);
+      font-size: 0.58rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 52px;
+      background: linear-gradient(to bottom, var(--cyan), transparent);
+      animation: scrollPulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0% {
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+      }
+
+      50% {
+        opacity: 1;
+        transform: scaleY(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scaleY(1);
+        transform-origin: bottom;
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* SECTION LAYOUT */
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 9rem 2rem;
+    }
+
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      max-width: 55px;
+      height: 1px;
+      background: var(--cyan);
+      opacity: 0.35;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3.5rem;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+    }
+
+    /* ABOUT */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+
+    .about-text p {
+      color: var(--text);
+      margin-bottom: 1.3rem;
+      opacity: 0.82;
+      font-size: 0.85rem;
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4rem;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 3px;
+      padding: 1.6rem 1.4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+    }
+
+    .stat-card:hover {
+      border-color: rgba(0, 245, 212, 0.4);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(0, 245, 212, 0.08);
+    }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--cyan);
+      display: block;
+      text-shadow: 0 0 20px rgba(0, 245, 212, 0.4);
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    /* SKILLS */
+    #skills {
+      background: linear-gradient(180deg, transparent 0%, rgba(6, 13, 31, 0.7) 20%, rgba(6, 13, 31, 0.7) 80%, transparent 100%);
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.8rem;
+    }
+
+    .skill-category {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 3px;
+      padding: 2rem;
+      transition: border-color 0.3s;
+    }
+
+    .skill-category:hover {
+      border-color: rgba(0, 245, 212, 0.3);
+    }
+
+    .skill-category h3 {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 1.8rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .skill-bar-wrap {
+      margin-bottom: 1.3rem;
+    }
+
+    .skill-bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.45rem;
+      font-size: 0.74rem;
+    }
+
+    .skill-name {
+      color: var(--text);
+    }
+
+    .skill-pct {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .skill-bar-track {
+      width: 100%;
+      height: 2px;
+      background: rgba(58, 74, 106, 0.5);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .skill-bar-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      border-radius: 2px;
+      transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 8px rgba(0, 245, 212, 0.5);
+    }
+
+    /* PROJECTS */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.8rem;
+    }
+
+    .project-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 3px;
+      padding: 2.2rem 2rem;
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      transition: border-color 0.35s, box-shadow 0.35s;
+      transform-style: preserve-3d;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 0;
+      background: linear-gradient(180deg, var(--cyan), var(--purple));
+      transition: height 0.4s;
+    }
+
+    .project-card:hover {
+      border-color: rgba(0, 245, 212, 0.3);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .project-card:hover::before {
+      height: 100%;
+    }
+
+    .project-num {
+      font-family: var(--font-display);
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      color: var(--cyan);
+      opacity: 0.55;
+      margin-bottom: 1.1rem;
+    }
+
+    .project-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.9rem;
+      letter-spacing: 0.04em;
+    }
+
+    .project-desc {
+      font-size: 0.78rem;
+      color: var(--text);
+      opacity: 0.72;
+      margin-bottom: 1.6rem;
+      line-height: 1.8;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .tag {
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.6rem;
+      border: 1px solid rgba(0, 245, 212, 0.28);
+      border-radius: 2px;
+      color: var(--cyan);
+      opacity: 0.8;
+    }
+
+    .project-link {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: gap 0.3s;
+    }
+
+    .project-link:hover {
+      gap: 1rem;
+    }
+
+    .project-link::after {
+      content: '→';
+    }
+
+    /* PROJECTS CAROUSEL */
+    .carousel-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+    }
+
+    .carousel-viewport {
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 1.8rem;
+      transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+      will-change: transform;
+    }
+
+    .carousel-track .project-card {
+      flex: 0 0 var(--card-w, 100%);
+    }
+
+    .carousel-btn {
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--cyan);
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      cursor: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s, opacity 0.3s;
+    }
+
+    .carousel-btn:hover:not(:disabled) {
+      border-color: var(--cyan);
+      box-shadow: 0 0 22px rgba(0, 245, 212, 0.25);
+      transform: scale(1.08);
+    }
+
+    .carousel-btn:disabled {
+      opacity: 0.28;
+      cursor: default;
+    }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-top: 2.2rem;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      border: none;
+      padding: 0;
+      cursor: none;
+      transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+
+    .carousel-dot.active {
+      background: var(--cyan);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px rgba(0, 245, 212, 0.6);
+    }
+
+    @media (max-width: 860px) {
+      .carousel-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+      }
+
+      .carousel-wrap {
+        gap: 0.7rem;
+      }
+    }
+
+    /* PARALLAX DECOR BLOBS */
+    .parallax-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+      will-change: transform;
+    }
+
+    .blob-cyan {
+      background: radial-gradient(circle, rgba(0, 245, 212, 0.35), transparent 70%);
+    }
+
+    .blob-purple {
+      background: radial-gradient(circle, rgba(123, 47, 255, 0.35), transparent 70%);
+    }
+
+    /* CONTACT */
+    #contact {
+      background: linear-gradient(180deg, transparent 0%, rgba(6, 13, 31, 0.7) 20%, rgba(6, 13, 31, 0.7) 80%, transparent 100%);
+    }
+
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 6rem;
+      align-items: start;
+    }
+
+    .contact-info p {
+      font-size: 0.83rem;
+      color: var(--text);
+      opacity: 0.8;
+      margin-bottom: 2.5rem;
+      line-height: 1.9;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.76rem;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.3s;
+      letter-spacing: 0.04em;
+      cursor: none;
+    }
+
+    .contact-link:hover {
+      color: var(--cyan);
+    }
+
+    .contact-link-icon {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--glass-border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-style: normal;
+      transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+
+    .contact-link:hover .contact-link-icon {
+      border-color: var(--cyan);
+      background: rgba(0, 245, 212, 0.07);
+      box-shadow: 0 0 15px rgba(0, 245, 212, 0.15);
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: rgba(0, 245, 212, 0.025);
+      border: 1px solid var(--glass-border);
+      border-radius: 2px;
+      padding: 0.9rem 1rem;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      resize: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--cyan);
+      background: rgba(0, 245, 212, 0.04);
+      box-shadow: 0 0 25px rgba(0, 245, 212, 0.1);
+    }
+
+    .form-group textarea {
+      height: 130px;
+    }
+
+    .form-submit {
+      align-self: flex-start;
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      padding: 1rem 2.8rem;
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: none;
+      border-radius: 2px;
+      transition: color 0.3s, box-shadow 0.3s, background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--cyan);
+      transform: translateX(-101%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 0;
+    }
+
+    .form-submit span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .form-submit:hover {
+      color: var(--bg);
+      box-shadow: 0 0 35px rgba(0, 245, 212, 0.3);
+    }
+
+    .form-submit:hover::before {
+      transform: translateX(0);
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 2.2rem;
+      border-top: 1px solid var(--glass-border);
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    /* REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1), transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal.delay-1 {
+      transition-delay: 0.1s;
+    }
+
+    .reveal.delay-2 {
+      transition-delay: 0.2s;
+    }
+
+    .reveal.delay-3 {
+      transition-delay: 0.3s;
+    }
+
+    /* NOISE OVERLAY */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 160px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav {
+        padding: 1rem 1.5rem;
+      }
+
+      .nav-links {
+        gap: 1.4rem;
+      }
+
+      .about-grid,
+      .contact-inner {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+
+      .section-inner {
+        padding: 6rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <nav>
+    <a href="#hero" class="nav-logo">YK.DEV</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div data-parallax="0.35">
+      <p class="hero-tag">Hello, I'm</p>
+    </div>
+    <div data-parallax="0.18">
+      <h1 class="hero-name" data-text="YOENGKY KURNIA">YOENGKY KURNIA</h1>
+    </div>
+    <div data-parallax="0.25">
+      <p class="hero-role"><span id="typed-text"></span><span class="cursor-blink"></span></p>
+    </div>
+    <div data-parallax="0.3">
+      <div class="hero-cta">
+        <a href="#projects" class="btn btn-primary">View Work</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch</a>
+      </div>
+    </div>
+    <div data-parallax="0.5">
+      <div class="scroll-indicator">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="parallax-blob blob-cyan" data-parallax="0.15" style="width:380px;height:380px;top:-80px;left:-120px;">
+    </div>
+    <div class="parallax-blob blob-purple" data-parallax="0.28"
+      style="width:300px;height:300px;bottom:-60px;right:-100px;"></div>
+    <div class="section-inner">
+      <div class="about-grid">
+        <div class="about-text">
+          <p class="section-label reveal">01 // About</p>
+          <h2 class="section-title reveal">Engineering Systems<br>That Scale</h2>
+          <p class="reveal delay-1">A developer who believes learning never stops. I enjoy turning ideas into working
+            systems and continuously improving them.</p>
+          <p class="reveal delay-2">Based in Greater Surabaya, I focus on Laravel, database architecture, and building
+            scalable backend web systems. Currently open to work — remote.</p>
+          <div class="reveal delay-3" style="margin-top: 2rem;">
+            <a href="#contact" class="btn btn-outline">Let's Talk →</a>
+          </div>
+        </div>
+        <div class="about-stats reveal delay-2">
+          <div class="stat-card">
+            <span class="stat-num" data-count="7">0</span>
+            <span class="stat-label">Years Experience</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" data-count="13">0</span>
+            <span class="stat-label">Projects Shipped</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" data-count="13">0</span>
+            <span class="stat-label">Happy Clients</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" data-count="99">0</span>
+            <span class="stat-label">Cups of Coffee</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="parallax-blob blob-purple" data-parallax="0.2" style="width:340px;height:340px;top:20%;right:-140px;">
+    </div>
+    <div class="section-inner">
+      <p class="section-label reveal">02 // Skills</p>
+      <h2 class="section-title reveal">My Toolkit</h2>
+      <div class="skills-grid">
+        <div class="skill-category reveal">
+          <h3>Backend</h3>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Laravel / PHP</span><span
+                class="skill-pct">90%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="90"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">RESTful APIs</span><span class="skill-pct">85%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="85"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Auth & Authorization</span><span
+                class="skill-pct">80%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="80"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Node.js</span><span class="skill-pct">70%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="70"></div>
+            </div>
+          </div>
+        </div>
+        <div class="skill-category reveal delay-1">
+          <h3>Database & Architecture</h3>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">MySQL / PostgreSQL</span><span
+                class="skill-pct">88%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="88"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Database Design</span><span
+                class="skill-pct">85%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="85"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Query Optimization</span><span
+                class="skill-pct">78%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="78"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Redis / Caching</span><span
+                class="skill-pct">72%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="72"></div>
+            </div>
+          </div>
+        </div>
+        <div class="skill-category reveal delay-2">
+          <h3>Tools & Workflow</h3>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Git / GitHub</span><span class="skill-pct">90%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="90"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Docker</span><span class="skill-pct">70%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="70"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Linux / CLI</span><span class="skill-pct">75%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="75"></div>
+            </div>
+          </div>
+          <div class="skill-bar-wrap">
+            <div class="skill-bar-header"><span class="skill-name">Postman / API Testing</span><span
+                class="skill-pct">80%</span></div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" data-width="80"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="section-inner">
+      <p class="section-label reveal">03 // Projects</p>
+      <h2 class="section-title reveal">Selected Work</h2>
+      <div class="carousel-wrap reveal">
+        <button class="carousel-btn carousel-prev" id="carPrev" aria-label="Previous project">‹</button>
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carTrack">
+            <div class="project-card">
+              <p class="project-num">PROJECT_01</p>
+              <h3 class="project-title">Alien War</h3>
+              <p class="project-desc">Developed a third-person multiplayer shooter game using Unreal Engine 5 with C++
+                and Blueprint. Implemented core gameplay mechanics including shooting systems, TPS camera controls, and
+                multiplayer functionality integrated with Steam services. Focused on game logic structure, networking
+                fundamentals, and performance optimization.</p>
+              <div class="project-tags">
+                <span class="tag">Unreal Engine</span><span class="tag">C++</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+            <div class="project-card">
+              <p class="project-num">PROJECT_02</p>
+              <h3 class="project-title">ADM Online</h3>
+              <p class="project-desc">Designed and developed a backend system for motorcycle parts POS and inventory
+                management. Built RESTful APIs to support mobile sales applications and internal dashboards. Implemented
+                product tracking, stock control, and transaction processing while ensuring database integrity and
+                optimized query performance.</p>
+              <div class="project-tags">
+                <span class="tag">Laravel</span><span class="tag">MySQL</span><span class="tag">API</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+            <div class="project-card">
+              <p class="project-num">PROJECT_03</p>
+              <h3 class="project-title">JDM Cleaning</h3>
+              <p class="project-desc">Engineered backend features for a service marketplace platform, including booking
+                workflows and transaction management. Integrated third-party payment gateway (ShopeePay API) and
+                optimized existing queries to improve application performance and reliability.</p>
+              <div class="project-tags">
+                <span class="tag">Laravel</span><span class="tag">MySQL</span><span class="tag">API</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+            <div class="project-card">
+              <p class="project-num">PROJECT_04</p>
+              <h3 class="project-title">CSR Cleaning</h3>
+              <p class="project-desc">Developed backend modules for a cleaning service platform, including service
+                booking, inventory tracking, and API endpoints for mobile application integration. Designed database
+                structures to manage operational data efficiently.</p>
+              <div class="project-tags">
+                <span class="tag">Laravel</span><span class="tag">MySQL</span><span class="tag">API</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+            <div class="project-card">
+              <p class="project-num">PROJECT_05</p>
+              <h3 class="project-title">Central Motor</h3>
+              <p class="project-desc">Built backend features for a motorcycle spare parts POS system, including sales
+                transactions, reporting, and stock management. Implemented data validation and optimized reporting
+                queries for accurate business insights.</p>
+              <div class="project-tags">
+                <span class="tag">Laravel</span><span class="tag">MySQL</span><span class="tag">API</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+            <div class="project-card">
+              <p class="project-num">PROJECT_06</p>
+              <h3 class="project-title">Gong Application</h3>
+              <p class="project-desc">Developed backend APIs to support a mobile application for data management and
+                display. Ensured structured API responses and improved system communication between frontend and backend
+                services.</p>
+              <div class="project-tags">
+                <span class="tag">PHP</span><span class="tag">PostgreSQL</span><span class="tag">CLI</span>
+              </div>
+              <a href="#" class="project-link">View Project</a>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-next" id="carNext" aria-label="Next project">›</button>
+      </div>
+      <div class="carousel-dots" id="carDots"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="parallax-blob blob-cyan" data-parallax="0.22" style="width:360px;height:360px;top:-100px;right:-120px;">
+    </div>
+    <div class="section-inner">
+      <p class="section-label reveal">04 // Contact</p>
+      <h2 class="section-title reveal">Let's Build<br>Something</h2>
+      <div class="contact-inner">
+        <div class="reveal">
+          <p>Have a project in mind? I'm currently taking on new clients and collaborations. Drop me a message or reach
+            out through any of the channels below.</p>
+          <div class="contact-links">
+            <a href="mailto:asadashino90925@gmail.com" class="contact-link">
+              <span class="contact-link-icon">✉</span> asadashino90925@gmail.com
+            </a>
+            <a href="https://www.linkedin.com/in/yoengky-kurnia/" target="_blank" rel="noopener" class="contact-link">
+              <span class="contact-link-icon">in</span> linkedin.com/in/yoengky-kurnia
+            </a>
+            <a href="https://github.com/SlothAphrodite" target="_blank" rel="noopener" class="contact-link">
+              <span class="contact-link-icon">gh</span> github.com/SlothAphrodite
+            </a>
+            <a href="https://www.instagram.com/slothathena/" target="_blank" rel="noopener" class="contact-link">
+              <span class="contact-link-icon">ig</span> instagram.com/slothathena
+            </a>
+          </div>
+        </div>
+        <form class="contact-form reveal delay-1" id="contact-form">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="your@email.com" />
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea placeholder="Tell me about your project..."></textarea>
+          </div>
+          <button type="button" class="form-submit" id="submit-btn"><span>Send Message</span></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Yoengky Kurnia — Crafted with precision &amp; caffeine</p>
+  </footer>
+
+  <script>
+    /* =====================================================
+       THREE.JS — Lightweight Particle Network
+       - Low pixel ratio, no antialias, 70 particles
+       - Single reused LineSegments BufferGeometry
+       - Pauses when tab hidden, throttled mouse
+       ===================================================== */
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById('bg-canvas'),
+      antialias: false,   // off = big perf win
+      alpha: true,
+      powerPreference: 'low-power'
+    });
+    renderer.setPixelRatio(1);           // always 1, never devicePixelRatio
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.z = 65;
+
+    // --- Particles (70 only) ---
+    const PCOUNT = 70;
+    const positions = new Float32Array(PCOUNT * 3);
+    const velocities = [];
+
+    for (let i = 0; i < PCOUNT; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 160;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+      velocities.push(
+        (Math.random() - 0.5) * 0.022,
+        (Math.random() - 0.5) * 0.022,
+        (Math.random() - 0.5) * 0.010
+      );
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const pMat = new THREE.PointsMaterial({ color: 0x00f5d4, size: 0.9, transparent: true, opacity: 0.55 });
+    scene.add(new THREE.Points(pGeo, pMat));
+
+    // --- Lines: ONE reused BufferGeometry (no GC thrash) ---
+    const MAX_LINES = 300;
+    const linePos = new Float32Array(MAX_LINES * 6); // 2 verts × 3 floats
+    const lineGeo = new THREE.BufferGeometry();
+    const linePosAttr = new THREE.BufferAttribute(linePos, 3);
+    linePosAttr.setUsage(THREE.DynamicDrawUsage);
+    lineGeo.setAttribute('position', linePosAttr);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.12 });
+    const lineSegs = new THREE.LineSegments(lineGeo, lineMat);
+    scene.add(lineSegs);
+
+    const MAX_DIST = 28, MAX_DIST_SQ = MAX_DIST * MAX_DIST;
+
+    function updateConnections() {
+      const pos = pGeo.attributes.position.array;
+      let lc = 0;
+      for (let i = 0; i < PCOUNT && lc < MAX_LINES; i++) {
+        const ix = pos[i * 3], iy = pos[i * 3 + 1], iz = pos[i * 3 + 2];
+        for (let j = i + 1; j < PCOUNT && lc < MAX_LINES; j++) {
+          const dx = ix - pos[j * 3], dy = iy - pos[j * 3 + 1], dz = iz - pos[j * 3 + 2];
+          if (dx * dx + dy * dy + dz * dz < MAX_DIST_SQ) {
+            const base = lc * 6;
+            linePos[base] = ix; linePos[base + 1] = iy; linePos[base + 2] = iz;
+            linePos[base + 3] = pos[j * 3]; linePos[base + 4] = pos[j * 3 + 1]; linePos[base + 5] = pos[j * 3 + 2];
+            lc++;
+          }
+        }
+      }
+      lineGeo.setDrawRange(0, lc * 2);
+      linePosAttr.needsUpdate = true;
+    }
+
+    // --- One simple rotating wireframe (low-detail) ---
+    const ico = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(12, 0),   // detail=0 = 20 faces only
+      new THREE.MeshBasicMaterial({ color: 0x7b2fff, wireframe: true, transparent: true, opacity: 0.06 })
+    );
+    ico.position.set(42, -10, -30);
+    scene.add(ico);
+
+    // --- Mouse: throttled, target-based ---
+    let mx = 0, my = 0, tmx = 0, tmy = 0;
+    let lastMove = 0;
+    document.addEventListener('mousemove', e => {
+      const now = Date.now();
+      if (now - lastMove < 50) return;   // 20fps mouse updates max
+      lastMove = now;
+      tmx = (e.clientX / window.innerWidth - 0.5) * 0.5;
+      tmy = (e.clientY / window.innerHeight - 0.5) * 0.3;
+    });
+
+    // --- Pause when tab hidden ---
+    let hidden = false;
+    document.addEventListener('visibilitychange', () => { hidden = document.hidden; });
+
+    let frame = 0;
+    (function animate() {
+      requestAnimationFrame(animate);
+      if (hidden) return;
+      frame++;
+
+      // Move particles
+      const pos = pGeo.attributes.position.array;
+      for (let i = 0; i < PCOUNT; i++) {
+        pos[i * 3] += velocities[i * 3];
+        pos[i * 3 + 1] += velocities[i * 3 + 1];
+        pos[i * 3 + 2] += velocities[i * 3 + 2];
+        if (Math.abs(pos[i * 3]) > 80) velocities[i * 3] *= -1;
+        if (Math.abs(pos[i * 3 + 1]) > 50) velocities[i * 3 + 1] *= -1;
+        if (Math.abs(pos[i * 3 + 2]) > 30) velocities[i * 3 + 2] *= -1;
+      }
+      pGeo.attributes.position.needsUpdate = true;
+
+      // Connections every 8 frames (not every frame)
+      if (frame % 8 === 0) updateConnections();
+
+      ico.rotation.y += 0.003;
+      ico.rotation.x += 0.002;
+
+      // Smooth camera parallax
+      mx += (tmx - mx) * 0.05;
+      my += (tmy - my) * 0.05;
+      camera.position.x = mx * 10;
+      camera.position.y = -my * 7;
+      camera.lookAt(scene.position);
+
+      renderer.render(scene, camera);
+    })();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* =====================================================
+       JQUERY — Cursor / Typing / Scroll / Interactions
+       ===================================================== */
+    $(function () {
+
+      // Custom Cursor
+      const $dot = $('#cursorDot');
+      const $ring = $('#cursorRing');
+      let ringX = 0, ringY = 0, dotX = 0, dotY = 0;
+
+      $(document).on('mousemove', function (e) {
+        dotX = e.clientX; dotY = e.clientY;
+        $dot.css({ left: dotX, top: dotY });
+        setTimeout(() => $ring.css({ left: e.clientX, top: e.clientY }), 90);
+      });
+
+      $('a, button, .project-card, .stat-card').on('mouseenter', function () {
+        $ring.css({ width: 60, height: 60, borderColor: 'rgba(0,245,212,0.75)', marginLeft: -11, marginTop: -11 });
+        $dot.css({ transform: 'translate(-50%,-50%) scale(1.8)', background: 'var(--cyan)' });
+      }).on('mouseleave', function () {
+        $ring.css({ width: 38, height: 38, borderColor: 'rgba(0,245,212,0.45)', marginLeft: 0, marginTop: 0 });
+        $dot.css({ transform: 'translate(-50%,-50%) scale(1)', background: 'var(--cyan)' });
+      });
+
+      // Typing Effect
+      const roles = [
+        'Backend Engineer',
+        'Scalable Web Systems',
+        'Laravel & Database Architecture'
+      ];
+      let ri = 0, ci = 0, deleting = false;
+
+      function type() {
+        const word = roles[ri];
+        if (!deleting) {
+          ci++;
+          $('#typed-text').text(word.slice(0, ci));
+          if (ci === word.length) { deleting = true; setTimeout(type, 2200); return; }
+        } else {
+          ci--;
+          $('#typed-text').text(word.slice(0, ci));
+          if (ci === 0) { deleting = false; ri = (ri + 1) % roles.length; }
+        }
+        setTimeout(type, deleting ? 48 : 82);
+      }
+      type();
+
+      // Scroll Reveal + Skill Bars + Counter
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const $el = $(entry.target);
+          $el.addClass('visible');
+
+          // Skill bars
+          $el.find('.skill-bar-fill').each(function () {
+            const $bar = $(this);
+            setTimeout(() => $bar.css('width', $bar.data('width') + '%'), 200);
+          });
+
+          // Counters
+          $el.find('[data-count]').each(function () {
+            const $num = $(this);
+            const target = parseInt($num.data('count'));
+            $({ n: 0 }).animate({ n: target }, {
+              duration: 1600, easing: 'swing',
+              step(v) { $num.text(Math.floor(v) + '+'); },
+              complete() { $num.text(target + '+'); }
+            });
+          });
+        });
+      }, { threshold: 0.12 });
+
+      $('.reveal, .skill-category').each(function () { observer.observe(this); });
+
+      // 3D Card Tilt (jQuery)
+      $('.project-card').on('mousemove', function (e) {
+        const r = this.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const y = e.clientY - r.top;
+        const cx = r.width / 2;
+        const cy = r.height / 2;
+        const rotY = ((x - cx) / cx) * 9;
+        const rotX = -((y - cy) / cy) * 9;
+        $(this).css('transform', `perspective(700px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`);
+      }).on('mouseleave', function () {
+        $(this).css('transform', '');
+      });
+
+      // Nav shrink on scroll
+      $(window).on('scroll', function () {
+        $('nav').css('padding', $(this).scrollTop() > 60
+          ? '0.75rem 5rem'
+          : '1.4rem 5rem'
+        );
+      });
+
+      // Nav active link highlight
+      $(window).on('scroll', function () {
+        const scrollY = $(this).scrollTop() + 120;
+        $('section').each(function () {
+          const top = $(this).offset().top;
+          const bot = top + $(this).outerHeight();
+          const id = $(this).attr('id');
+          if (scrollY >= top && scrollY < bot) {
+            $('.nav-links a').removeClass('active').css('color', '');
+            $(`.nav-links a[href="#${id}"]`).css('color', 'var(--cyan)');
+          }
+        });
+      });
+
+      // Contact Form
+      $('#submit-btn').on('click', function () {
+        const $btn = $(this);
+        $btn.find('span').text('Sending...');
+        $btn.prop('disabled', true);
+        setTimeout(() => {
+          $btn.find('span').text('Message Sent ✓');
+          $btn.css({ background: 'rgba(0,245,212,0.12)', boxShadow: '0 0 30px rgba(0,245,212,0.2)' });
+        }, 1500);
+      });
+
+      /* =====================================================
+         CUSTOM SMOOTH SCROLL (eased, nav-offset aware)
+         ===================================================== */
+      function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+      function smoothScrollTo(targetY, duration) {
+        const startY = window.scrollY;
+        const diff = targetY - startY;
+        let startTime = null;
+        function step(ts) {
+          if (startTime === null) startTime = ts;
+          const progress = Math.min((ts - startTime) / duration, 1);
+          window.scrollTo(0, startY + diff * easeInOutCubic(progress));
+          if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      $('a[href^="#"]').on('click', function (e) {
+        const id = $(this).attr('href');
+        if (!id || id.length < 2) return;
+        const $target = $(id);
+        if (!$target.length) return;
+        e.preventDefault();
+        const navH = $('nav').outerHeight();
+        const targetY = $target.offset().top - navH + 1;
+        const dist = Math.abs(targetY - window.scrollY);
+        const duration = Math.min(1300, Math.max(500, dist * 0.6));
+        smoothScrollTo(targetY, duration);
+      });
+
+      /* =====================================================
+         SCROLL PARALLAX — position-relative-to-viewport based,
+         so it stays correct no matter how far down the page is
+         ===================================================== */
+      const $parallaxEls = $('[data-parallax]');
+      let parallaxTicking = false;
+
+      function updateParallax() {
+        const vh = window.innerHeight;
+        $parallaxEls.each(function () {
+          const $el = $(this);
+          const speed = parseFloat($el.data('parallax'));
+          const rect = this.getBoundingClientRect();
+          const center = rect.top + rect.height / 2;
+          const delta = (vh / 2 - center) * speed;
+          $el.css('transform', `translateY(${-delta}px)`);
+        });
+        parallaxTicking = false;
+      }
+
+      $(window).on('scroll', function () {
+        if (!parallaxTicking) {
+          requestAnimationFrame(updateParallax);
+          parallaxTicking = true;
+        }
+      });
+      updateParallax();
+
+      /* =====================================================
+         PROJECTS CAROUSEL — responsive cards-per-view,
+         smooth CSS-transform slide, buttons + dots + swipe
+         ===================================================== */
+      const $track = $('#carTrack');
+      const $viewport = $track.parent();
+      const $cards = $track.children('.project-card');
+      const $prevBtn = $('#carPrev');
+      const $nextBtn = $('#carNext');
+      const $dotsWrap = $('#carDots');
+      let carIndex = 0;
+      let cardsPerView = 3;
+
+      function cardsForWidth() {
+        const w = window.innerWidth;
+        if (w <= 640) return 1;
+        if (w <= 980) return 2;
+        return 3;
+      }
+
+      function trackGap() {
+        return parseFloat($track.css('gap')) || 28.8;
+      }
+
+      function buildDots(maxIndex) {
+        $dotsWrap.empty();
+        for (let i = 0; i <= maxIndex; i++) {
+          $('<button class="carousel-dot" aria-label="Go to project slide ' + (i + 1) + '"></button>')
+            .toggleClass('active', i === carIndex)
+            .on('click', () => { carIndex = i; renderCarousel(); })
+            .appendTo($dotsWrap);
+        }
+      }
+
+      function renderCarousel() {
+        const maxIndex = Math.max(0, $cards.length - cardsPerView);
+        carIndex = Math.min(carIndex, maxIndex);
+        const g = trackGap();
+        const cardWidth = parseFloat($track.css('--card-w')) ||
+          ($viewport.width() - g * (cardsPerView - 1)) / cardsPerView;
+        const offset = carIndex * (cardWidth + g);
+        $track.css('transform', `translateX(-${offset}px)`);
+        $prevBtn.prop('disabled', carIndex <= 0);
+        $nextBtn.prop('disabled', carIndex >= maxIndex);
+        $dotsWrap.children().each(function (i) { $(this).toggleClass('active', i === carIndex); });
+      }
+
+      function layoutCarousel() {
+        cardsPerView = cardsForWidth();
+        const g = trackGap();
+        const cardWidth = ($viewport.width() - g * (cardsPerView - 1)) / cardsPerView;
+        $track.css('--card-w', cardWidth + 'px');
+        const maxIndex = Math.max(0, $cards.length - cardsPerView);
+        buildDots(maxIndex);
+        renderCarousel();
+      }
+
+      $prevBtn.on('click', function () { if (carIndex > 0) { carIndex--; renderCarousel(); } });
+      $nextBtn.on('click', function () {
+        const maxIndex = $cards.length - cardsPerView;
+        if (carIndex < maxIndex) { carIndex++; renderCarousel(); }
+      });
+
+      // Touch swipe support
+      let touchStartX = 0, touchActive = false;
+      $viewport.on('touchstart', function (e) { touchStartX = e.originalEvent.touches[0].clientX; touchActive = true; });
+      $viewport.on('touchend', function (e) {
+        if (!touchActive) return;
+        touchActive = false;
+        const dx = e.originalEvent.changedTouches[0].clientX - touchStartX;
+        const maxIndex = $cards.length - cardsPerView;
+        if (dx > 50 && carIndex > 0) { carIndex--; renderCarousel(); }
+        else if (dx < -50 && carIndex < maxIndex) { carIndex++; renderCarousel(); }
+      });
+
+      $(window).on('resize', layoutCarousel);
+      layoutCarousel();
+
+    });
+  </script>
+</body>
+
+</html>
